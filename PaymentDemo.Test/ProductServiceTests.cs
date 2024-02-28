@@ -117,7 +117,7 @@ namespace PaymentDemo.Test
         [InlineData(9)]
         public async Task GetByID_Product_Fail(int productId)
         {
-            //Arrange ratio
+            //Arrange
             var unitOfWork = MockUnitOfWork.GetMock();
             var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
 
