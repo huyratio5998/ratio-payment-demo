@@ -32,7 +32,7 @@ namespace PaymentDemo.Manage.Services.Implements
                 var createdProduct = await _unitOfWork.ProductRepository.CreateAsync(product);            
                 if (createdProduct == null || createdProduct.Id == 0) return 0;
                 
-                // add product category if any
+                // create productCategory if any
                 if(newProduct.ProductCategories != null && newProduct.ProductCategories.Any())
                 {
                     var categoryRepo = _unitOfWork.GetRepository<Category>();
@@ -46,8 +46,7 @@ namespace PaymentDemo.Manage.Services.Implements
                             var createdCategory = await categoryRepo.CreateAsync(new Category() { Name = category.Name });
                             createdCategoryId = createdCategory.Id;
                         }
-
-                        // create product category
+                        
                         await productCategoryRepo.CreateAsync(
                                 new ProductCategory()
                                 {

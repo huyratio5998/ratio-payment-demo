@@ -24,6 +24,8 @@ namespace PaymentDemo.Manage.Configurations.Mapper
                 .ForMember(x=>x.ProductCategories, f => f.Ignore());
             CreateMap<ProductCart, ProductCartViewModel>();                
             CreateMap<Category, CategoryViewModel>();
+            CreateMap<Cart, CartViewModel>();
+            CreateMap<ProductCartViewModel, ProductCart>();
             CreateMap(typeof(PagedResponse<>), typeof(PagedResponse<>));
         }
 
