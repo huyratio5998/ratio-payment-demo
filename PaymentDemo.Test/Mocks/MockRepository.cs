@@ -68,6 +68,7 @@ namespace PaymentDemo.Test.Mocks
                 {
                     Id = 1,
                     UserId = 1,
+                    Status = Manage.Enums.CartStatus.Created,
                     ProductCarts = new List<ProductCart>()
                     {
                         new ProductCart(){ ProductId = 1, Number = 1,CartId = 1, Price = 50 },
@@ -78,6 +79,7 @@ namespace PaymentDemo.Test.Mocks
                 {
                     Id = 2,
                     UserId = 2,
+                    Status = Manage.Enums.CartStatus.Created,
                     ProductCarts = new List<ProductCart>()
                     {
                         new ProductCart(){ ProductId = 1, Number = 1,CartId = 1, Price = 50 },
@@ -90,6 +92,7 @@ namespace PaymentDemo.Test.Mocks
             {
                 Id = 99,
                 UserId = 1,
+                Status = Manage.Enums.CartStatus.Created,
                 ProductCarts = new List<ProductCart>()
                     {
                         new ProductCart(){ ProductId = 1, Number = 1,CartId = 99, Price = 50 },
@@ -99,7 +102,7 @@ namespace PaymentDemo.Test.Mocks
 
             mock.Setup(x => x.GetAll(false)).Returns(() => carts);
             mock.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => carts.FirstOrDefault(x => x.Id == id));
-            mock.Setup(x => x.CreateAsync(It.IsAny<Cart>())).Callback(() => { return; });
+            mock.Setup(x => x.CreateAsync(It.IsAny<Cart>())).ReturnsAsync(newCart);
             mock.Setup(x => x.Update(It.IsAny<Cart>())).Callback(() => { return; });
             mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).Callback(() => { return; });
 
@@ -118,7 +121,7 @@ namespace PaymentDemo.Test.Mocks
             mock.Setup(x => x.GetAll(false)).Returns(() => carts);
             mock.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => carts.FirstOrDefault(x => x.Id == id));
             mock.Setup(x => x.CreateAsync(It.IsAny<ProductCart>())).Callback(() => { return; });
-            mock.Setup(x => x.Update(It.IsAny<ProductCart>())).Callback(() => { return; });
+            mock.Setup(x => x.Update(It.IsAny<ProductCart>())).Returns(true);
             mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).Callback(() => { return; });
 
             return mock;

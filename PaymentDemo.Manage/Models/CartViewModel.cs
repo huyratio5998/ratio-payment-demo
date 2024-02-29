@@ -23,7 +23,7 @@ namespace PaymentDemo.Manage.Models
     {
         public CartViewModelValidator()
         {
-            RuleFor(x => x.UserId).GreaterThan(0);            
+            RuleFor(x => x.UserId).GreaterThan(0);                        
         }
     }
 }

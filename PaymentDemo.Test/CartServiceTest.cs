@@ -181,5 +181,38 @@ namespace PaymentDemo.Test
             //Assert
             result.Should().BeTrue();
         }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        public async Task GetCart_GetById_ReturnValue(int cartId)
+        {
+            //Arrange
+            var unitOfWork = MockUnitOfWork.GetMock();            
+            var cartService = new CartService(unitOfWork.Object, _mapper, _cartValidator);
+
+            //Act
+            var cartDetail = await cartService.GetCartAsync(cartId, false);
+            
+            //Assert
+            cartDetail.Should().NotBeNull();
+            cartDetail.Should().BeOfType<CartViewModel>();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(99)]
+        public async Task GetCart_GetById_ReturnNull(int cartId)
+        {
+            //Arrange
+            var unitOfWork = MockUnitOfWork.GetMock();
+            var cartService = new CartService(unitOfWork.Object, _mapper, _cartValidator);
+            //Act
+            var cartDetail = await cartService.GetCartAsync(cartId, false);
+
+            //Assert
+            cartDetail.Should().BeNull();            
+        }
     }
 }
