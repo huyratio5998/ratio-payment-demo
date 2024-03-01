@@ -126,5 +126,23 @@ namespace PaymentDemo.Test.Mocks
 
             return mock;
         }
+
+        public static Mock<IBaseRepository<User>> GetMockUser()
+        {
+            var mock = new Mock<IBaseRepository<User>>();
+            var users = new List<User>()
+            {
+               new User(){ Id = 1, FirstName="ratio", LastName="ratio", PhoneNumber="0144234234", Image="abc.jpg", Address="Hanoi" },
+               new User(){ Id = 2, FirstName="ratio 2", LastName="ratio 2", PhoneNumber="0144245354", Image="abc.jpg", Address="Hai Duong" }
+            };
+
+            mock.Setup(x => x.GetAll(false)).Returns(() => users);
+            mock.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => users.FirstOrDefault(x => x.Id == id));
+            mock.Setup(x => x.CreateAsync(It.IsAny<User>())).Callback(() => { return; });
+            mock.Setup(x => x.Update(It.IsAny<User>())).Returns(true);
+            mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).Callback(() => { return; });
+
+            return mock;
+        }
     }
 }

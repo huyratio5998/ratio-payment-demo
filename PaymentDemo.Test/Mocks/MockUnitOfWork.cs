@@ -1,7 +1,6 @@
 ﻿using Moq;
 using PaymentDemo.Manage.Entities;
 using PaymentDemo.Manage.Repositories.Abstracts;
-using PaymentDemo.Manage.Repositories.Implements;
 
 namespace PaymentDemo.Test.Mocks
 {
@@ -17,6 +16,7 @@ namespace PaymentDemo.Test.Mocks
             mock.Setup(x => x.GetRepository<ProductCategory>()).Returns(() => MockRepository.GetMockProductCategory().Object);
             mock.Setup(x => x.GetRepository<Cart>()).Returns(() => MockRepository.GetMockCart().Object);
             mock.Setup(x => x.GetRepository<ProductCart>()).Returns(() => MockRepository.GetMockProductCart().Object);
+            mock.Setup(x => x.GetRepository<User>()).Returns(() => MockRepository.GetMockUser().Object);
             mock.Setup(x => x.SaveAsync()).Callback(() => { return; });
 
             return mock;

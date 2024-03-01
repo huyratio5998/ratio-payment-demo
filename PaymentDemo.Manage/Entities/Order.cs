@@ -5,6 +5,7 @@ namespace PaymentDemo.Manage.Entities
     public class Order : BaseEntity
     {        
         public int CartId { get; set; }
+        public string OrderNumber { get; set; }
         public string ShippingAddress { get; set; }
         public string PhoneNumber { get; set; }
         public PaymentType PaymentType { get; set; }

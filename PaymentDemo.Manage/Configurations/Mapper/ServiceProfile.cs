@@ -8,27 +8,20 @@ namespace PaymentDemo.Manage.Configurations.Mapper
     {
         public ServiceProfile()
         {
-
-            //CreateMap<SongApiRequest, Song>();
-            //CreateMap<SongApiRequest, SongViewModel>()
-            //    .ForMember(des => des.Song, des => des.MapFrom(s => s));
-            //CreateMap<Song, SongViewModel>()
-            //    .ForMember(des => des.Song, x => x.MapFrom(des => des));
-
-            //CreateMap<ArtistApiRequest, ArtistViewModel>()
-            //    .ForMember(des => des.Artist, des => des.MapFrom(s => s));
-
             CreateMap<Product, ProductViewModel>()
                 .ForMember(x => x.ProductCategories, f => f.Ignore());
             CreateMap<ProductViewModel, Product>()
                 .ForMember(x=>x.ProductCategories, f => f.Ignore());
-            //CreateMap<ProductCart, ProductCartViewModel>();                
             CreateMap<Category, CategoryViewModel>();
             CreateMap<Cart, CartViewModel>();
             CreateMap<CartViewModel, Cart>();
             CreateMap<CartItemViewModel, ProductCart>();
             CreateMap<AddToCartViewModel, ProductCart>();
-
+            CreateMap<User, UserViewModel>();
+            CreateMap<UserViewModel, User>();
+            CreateMap<OrderViewModel, Order>()
+                .ForMember(x=>x.CartId, f=>f.MapFrom(t=>t.Cart.Id));
+            CreateMap<Order, OrderViewModel>();            
             CreateMap(typeof(PagedResponse<>), typeof(PagedResponse<>));
         }
 

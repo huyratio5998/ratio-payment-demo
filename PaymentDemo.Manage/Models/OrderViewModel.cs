@@ -5,6 +5,10 @@ namespace PaymentDemo.Manage.Models
 {
     public class OrderViewModel
     {
+        public int Id { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime ModifiedDate { get; set; }
+        public string OrderNumber { get; set; }
         public CartViewModel Cart { get; set; }
         public UserViewModel User { get; set; }
         public string ShippingAddress { get; set; }
