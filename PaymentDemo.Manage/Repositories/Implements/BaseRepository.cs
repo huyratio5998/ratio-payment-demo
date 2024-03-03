@@ -26,9 +26,14 @@ namespace PaymentDemo.Manage.Repositories.Implements
         public async Task<bool> DeleteAsync(int id)
         {
             var entity = await GetByIdAsync(id);
+            return await DeleteAsync(entity);
+        }
+
+        public async Task<bool> DeleteAsync(T? entity)
+        {
             if (entity == null) return false;
 
-            _dbSet.Remove(entity);            
+            _dbSet.Remove(entity);
 
             return true;
         }

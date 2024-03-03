@@ -90,5 +90,63 @@ namespace PaymentDemo.Manage.Services.Implements
             }
         }
 
+        public async Task<bool> UpdateOrderAsync(OrderViewModel newOrder)
+        {
+            try
+            {
+                var orderValidate = await _validator.ValidateAsync(newOrder);
+                if (!orderValidate.IsValid) return false;
+
+                var order = _mapper.Map<Order>(newOrder);
+                _orderRepository.Update(order);
+                
+                await _unitOfWork.SaveAsync();
+                return true;
+
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteOrderAsync(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0) return false;
+
+                var result = await _orderRepository.DeleteAsync(orderId);
+                if (!result) return false;
+
+                await _unitOfWork.SaveAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteOrderAsync(string orderNumber)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(orderNumber)) return false;
+
+                var order = await _orderRepository.GetAll().AsQueryable().FirstOrDefaultAsync(x => x.OrderNumber.Equals(orderNumber));
+                if (order == null) return false;
+
+                var result = await _orderRepository.DeleteAsync(order);
+                if (!result) return false;
+
+                await _unitOfWork.SaveAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
     }
 }

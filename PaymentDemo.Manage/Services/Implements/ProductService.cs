@@ -29,7 +29,9 @@ namespace PaymentDemo.Manage.Services.Implements
 
                 await _unitOfWork.CreateTransactionAsync();
                 var product = _mapper.Map<Product>(newProduct);
-                var createdProduct = await _unitOfWork.ProductRepository.CreateAsync(product);            
+                product.Id = 0;
+                var createdProduct = await _unitOfWork.ProductRepository.CreateAsync(product);
+                await _unitOfWork.SaveAsync();
                 if (createdProduct == null || createdProduct.Id == 0) return 0;
                 
                 // create productCategory if any
@@ -44,6 +46,7 @@ namespace PaymentDemo.Manage.Services.Implements
                         if (await categoryRepo.GetByIdAsync(category.Id, false) == null)
                         {
                             var createdCategory = await categoryRepo.CreateAsync(new Category() { Name = category.Name });
+                            await _unitOfWork.SaveAsync();
                             createdCategoryId = createdCategory.Id;
                         }
                         
@@ -88,7 +91,7 @@ namespace PaymentDemo.Manage.Services.Implements
             return _mapper.Map<ProductViewModel>(product);
         }
 
-        public async Task<PagedResponse<ProductViewModel>> GetProductAsync(ProductQueryParams queryParams)
+        public async Task<PagedResponse<ProductViewModel>> GetProductsAsync(ProductQueryParams queryParams)
         {
             var items = _unitOfWork.ProductRepository.GetAll()
                             .AsQueryable();
@@ -123,7 +126,7 @@ namespace PaymentDemo.Manage.Services.Implements
 
                 await _unitOfWork.CreateTransactionAsync();
 
-                var targetProduct = await _unitOfWork.ProductRepository.GetByIdAsync(newProduct.Id ?? 0);
+                var targetProduct = await _unitOfWork.ProductRepository.GetByIdAsync(newProduct.Id ?? 0, false);
                 if(targetProduct == null || targetProduct.Id == 0) return false;
 
                 var res = _unitOfWork.ProductRepository.Update(_mapper.Map<Product>(newProduct));
@@ -150,6 +153,7 @@ namespace PaymentDemo.Manage.Services.Implements
                         if (await categoryRepo.GetByIdAsync(category.Id, false) == null)
                         {
                             var createdCategory = await categoryRepo.CreateAsync(new Category() { Name = category.Name });
+                            await _unitOfWork.SaveAsync();
                             createdCategoryId = createdCategory.Id;
                         }
 

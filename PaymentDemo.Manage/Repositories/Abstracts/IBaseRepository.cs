@@ -10,6 +10,7 @@ namespace PaymentDemo.Manage
         Task<T> CreateAsync(T entity);
         bool Update(T entity);
         Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(T? entity);
         Task<bool> DeleteRangeAsync(List<T> entities);
     }
 }
