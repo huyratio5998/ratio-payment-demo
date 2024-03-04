@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using PaymentDemo.Manage.Constants;
 using PaymentDemo.Manage.Entities;
+using PaymentDemo.Manage.Helpers;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Repositories.Abstracts;
 using PaymentDemo.Manage.Services.Abstractions;
@@ -10,14 +12,16 @@ namespace PaymentDemo.Manage.Services.Implements
     public class ProductService : IProductService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;        
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IMapper _mapper;
         private readonly IValidator<ProductViewModel> _validator;
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<ProductViewModel> validator)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<ProductViewModel> validator, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _validator = validator;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<int> CreateProductAsync(ProductViewModel newProduct)
@@ -30,12 +34,18 @@ namespace PaymentDemo.Manage.Services.Implements
                 await _unitOfWork.CreateTransactionAsync();
                 var product = _mapper.Map<Product>(newProduct);
                 product.Id = 0;
+                Task uploadImage = null;
+                if (newProduct.UploadedImage != null)
+                {
+                    uploadImage = FileHelpers.UploadFile(newProduct.UploadedImage, _webHostEnvironment.WebRootPath, FileConstants.ImageFolder, FileConstants.ProductFolder);
+                    product.Image = FileHelpers.ResolveImage(newProduct.UploadedImage.FileName);
+                }
                 var createdProduct = await _unitOfWork.ProductRepository.CreateAsync(product);
                 await _unitOfWork.SaveAsync();
                 if (createdProduct == null || createdProduct.Id == 0) return 0;
-                
+
                 // create productCategory if any
-                if(newProduct.ProductCategories != null && newProduct.ProductCategories.Any())
+                if (newProduct.ProductCategories != null && newProduct.ProductCategories.Any())
                 {
                     var categoryRepo = _unitOfWork.GetRepository<Category>();
                     var productCategoryRepo = _unitOfWork.GetRepository<ProductCategory>();
@@ -49,7 +59,7 @@ namespace PaymentDemo.Manage.Services.Implements
                             await _unitOfWork.SaveAsync();
                             createdCategoryId = createdCategory.Id;
                         }
-                        
+
                         await productCategoryRepo.CreateAsync(
                                 new ProductCategory()
                                 {
@@ -60,11 +70,13 @@ namespace PaymentDemo.Manage.Services.Implements
                 }
 
                 await _unitOfWork.SaveAsync();
+                if (uploadImage != null) await uploadImage;
                 await _unitOfWork.CommitAsync();
 
                 return createdProduct.Id;
 
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
                 return 0;
@@ -120,14 +132,20 @@ namespace PaymentDemo.Manage.Services.Implements
         public async Task<bool> UpdateProductAsync(ProductViewModel newProduct)
         {
             try
-            {                
+            {
                 var validateResult = await _validator.ValidateAsync(newProduct);
                 if (!validateResult.IsValid || newProduct.Id == 0) return false;
 
                 await _unitOfWork.CreateTransactionAsync();
 
+                Task uploadImage = null;
+                if (newProduct.UploadedImage != null)
+                {
+                    uploadImage = FileHelpers.UploadFile(newProduct.UploadedImage, _webHostEnvironment.WebRootPath, FileConstants.ImageFolder, FileConstants.ProductFolder);
+                    newProduct.Image = FileHelpers.ResolveImage(newProduct.UploadedImage.FileName);
+                }
                 var targetProduct = await _unitOfWork.ProductRepository.GetByIdAsync(newProduct.Id ?? 0, false);
-                if(targetProduct == null || targetProduct.Id == 0) return false;
+                if (targetProduct == null || targetProduct.Id == 0) return false;
 
                 var res = _unitOfWork.ProductRepository.Update(_mapper.Map<Product>(newProduct));
                 if (!res) return false;
@@ -140,12 +158,12 @@ namespace PaymentDemo.Manage.Services.Implements
                     .ToList();
 
                 // remove => then => create new product category record.
-                if(currentProductCategories != null && currentProductCategories.Any())
+                if (currentProductCategories != null && currentProductCategories.Any())
                     await productCategoryRepository.DeleteRangeAsync(currentProductCategories);
 
                 if (newProduct.ProductCategories != null && newProduct.ProductCategories.Any())
                 {
-                    var categoryRepo = _unitOfWork.GetRepository<Category>();                    
+                    var categoryRepo = _unitOfWork.GetRepository<Category>();
                     foreach (CategoryViewModel category in newProduct.ProductCategories)
                     {
                         if (category == null || category.Id <= 0) continue;
@@ -166,8 +184,9 @@ namespace PaymentDemo.Manage.Services.Implements
                                 });
                     }
                 }
-                
+
                 await _unitOfWork.SaveAsync();
+                if (uploadImage != null) await uploadImage;
                 await _unitOfWork.CommitAsync();
                 return true;
             }

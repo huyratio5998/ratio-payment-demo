@@ -51,7 +51,7 @@ namespace PaymentDemo.Api.Controllers.V1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ProductViewModel request)
+        public async Task<IActionResult> Create([FromForm] ProductViewModel request)
         {
             var result = await _productService.CreateProductAsync(request);
             if (result == 0) return BadRequest();
@@ -63,7 +63,7 @@ namespace PaymentDemo.Api.Controllers.V1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPost]
-        public async Task<IActionResult> Update([FromBody] ProductViewModel request)
+        public async Task<IActionResult> Update([FromForm] ProductViewModel request)
         {
             var result = await _productService.UpdateProductAsync(request);
             if (!result) return BadRequest();

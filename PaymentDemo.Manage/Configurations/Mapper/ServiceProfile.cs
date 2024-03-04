@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using PaymentDemo.Manage.Entities;
+using PaymentDemo.Manage.Helpers;
 using PaymentDemo.Manage.Models;
 
 namespace PaymentDemo.Manage.Configurations.Mapper
@@ -9,7 +10,10 @@ namespace PaymentDemo.Manage.Configurations.Mapper
         public ServiceProfile()
         {
             CreateMap<Product, ProductViewModel>()
-                .ForMember(x => x.ProductCategories, f => f.Ignore());
+                .ForMember(x => x.UploadedImage, f => f.Ignore())
+                .ForMember(x => x.ProductCategories, f => f.Ignore())
+                .ForMember(x=>x.Image, f=> f.MapFrom(t=> FileHelpers.ResolveImage(t.Image ?? string.Empty)));                
+
             CreateMap<ProductViewModel, Product>()
                 .ForMember(x=>x.ProductCategories, f => f.Ignore());
             CreateMap<Category, CategoryViewModel>();

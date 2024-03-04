@@ -1,6 +1,8 @@
 using AutoMapper;
 using FluentAssertions;
 using FluentValidation;
+using Microsoft.AspNetCore.Hosting;
+using Moq;
 using PaymentDemo.Manage;
 using PaymentDemo.Manage.Configurations.Mapper;
 using PaymentDemo.Manage.Entities;
@@ -56,7 +58,9 @@ namespace PaymentDemo.Test
             };
 
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             int productId = await productService.CreateProductAsync(newProduct);
@@ -87,7 +91,9 @@ namespace PaymentDemo.Test
                 }
             };
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             int productId = await productService.CreateProductAsync(newProduct);
@@ -102,7 +108,9 @@ namespace PaymentDemo.Test
         {
             //Arrange
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             ProductViewModel product = await productService.GetProductAsync(productId);
@@ -119,7 +127,9 @@ namespace PaymentDemo.Test
         {
             //Arrange
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             ProductViewModel product = await productService.GetProductAsync(productId);
@@ -156,7 +166,9 @@ namespace PaymentDemo.Test
             }
 
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             bool result = await productService.UpdateProductAsync(newProduct);
@@ -186,7 +198,9 @@ namespace PaymentDemo.Test
                 }
             };
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             bool result = await productService.UpdateProductAsync(newProduct);
@@ -202,7 +216,9 @@ namespace PaymentDemo.Test
         {
             //Arrange            
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             bool deletedResult = await productService.DeleteProductAsync(productId);
@@ -218,7 +234,9 @@ namespace PaymentDemo.Test
         {
             //Arrange
             var unitOfWork = MockUnitOfWork.GetMock();
-            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator);
+            var webHostEnvironment = new Mock<IWebHostEnvironment>();
+            webHostEnvironment.Setup(x => x.WebRootPath).Returns("wwwroot");
+            var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
             ProductViewModel getProductBefore = await productService.GetProductAsync(productId);
