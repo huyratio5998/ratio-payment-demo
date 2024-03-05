@@ -1,8 +1,10 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PaymentDemo.Manage;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Services.Abstractions;
+using System.Text.Json;
 
 namespace PaymentDemo.Api.Controllers.V1
 {
@@ -20,8 +22,8 @@ namespace PaymentDemo.Api.Controllers.V1
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
         {
             var result = await _productService.GetProductAsync(id, false);
             if (result == null || result.Id == null || result.Id == 0) return NotFound();
@@ -53,10 +55,13 @@ namespace PaymentDemo.Api.Controllers.V1
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ProductViewModel request)
         {
+            if (!string.IsNullOrWhiteSpace(request.ProductCategoriesJson)) 
+                request.ProductCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(request.ProductCategoriesJson);
+
             var result = await _productService.CreateProductAsync(request);
             if (result == 0) return BadRequest();
 
-            return CreatedAtAction(nameof(Get),new {id = result});
+            return CreatedAtAction(nameof(Get), new { id = result }, result);
         }
 
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -73,7 +78,7 @@ namespace PaymentDemo.Api.Controllers.V1
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]        
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromBody] int id)
         {
             if(id <=0) return BadRequest();

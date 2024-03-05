@@ -15,6 +15,7 @@ namespace PaymentDemo.Manage.Services.Implements
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IMapper _mapper;
         private readonly IValidator<ProductViewModel> _validator;
+        private const string wwwRootAddress = "wwwroot";
 
         public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<ProductViewModel> validator, IWebHostEnvironment webHostEnvironment)
         {
@@ -37,50 +38,54 @@ namespace PaymentDemo.Manage.Services.Implements
                 Task uploadImage = null;
                 if (newProduct.UploadedImage != null)
                 {
-                    uploadImage = FileHelpers.UploadFile(newProduct.UploadedImage, _webHostEnvironment.WebRootPath, FileConstants.ImageFolder, FileConstants.ProductFolder);
-                    product.Image = FileHelpers.ResolveImage(newProduct.UploadedImage.FileName);
+                    var webRootAddress = string.IsNullOrWhiteSpace(_webHostEnvironment.WebRootPath) ? wwwRootAddress : _webHostEnvironment.WebRootPath;
+                    uploadImage = FileHelpers.UploadFile(newProduct.UploadedImage, webRootAddress, FileConstants.ImageFolder, FileConstants.ProductFolder);
+                    product.Image = newProduct.UploadedImage.FileName;
                 }
                 var createdProduct = await _unitOfWork.ProductRepository.CreateAsync(product);
                 await _unitOfWork.SaveAsync();
                 if (createdProduct == null || createdProduct.Id == 0) return 0;
 
                 // create productCategory if any
-                if (newProduct.ProductCategories != null && newProduct.ProductCategories.Any())
-                {
-                    var categoryRepo = _unitOfWork.GetRepository<Category>();
-                    var productCategoryRepo = _unitOfWork.GetRepository<ProductCategory>();
-                    foreach (CategoryViewModel category in newProduct.ProductCategories)
-                    {
-                        if (category == null || category.Id <= 0) continue;
-                        var createdCategoryId = 0;
-                        if (await categoryRepo.GetByIdAsync(category.Id, false) == null)
-                        {
-                            var createdCategory = await categoryRepo.CreateAsync(new Category() { Name = category.Name });
-                            await _unitOfWork.SaveAsync();
-                            createdCategoryId = createdCategory.Id;
-                        }
-
-                        await productCategoryRepo.CreateAsync(
-                                new ProductCategory()
-                                {
-                                    CategoryId = createdCategoryId > 0 ? createdCategoryId : category.Id,
-                                    ProductId = createdProduct.Id
-                                });
-                    }
-                }
-
-                await _unitOfWork.SaveAsync();
+                await AddProductCategoryInfo(createdProduct.Id, newProduct.ProductCategories);
+                
                 if (uploadImage != null) await uploadImage;
                 await _unitOfWork.CommitAsync();
 
                 return createdProduct.Id;
-
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
                 return 0;
             }
+        }
+
+        private async Task AddProductCategoryInfo(int productId, List<CategoryViewModel> categories)
+        {
+            if (categories == null || !categories.Any()) return;
+
+            var categoryRepo = _unitOfWork.GetRepository<Category>();
+            var productCategoryRepo = _unitOfWork.GetRepository<ProductCategory>();
+            foreach (CategoryViewModel category in categories)
+            {
+                if (category == null || category.Id <= 0) continue;
+                var createdCategoryId = 0;
+                if (await categoryRepo.GetByIdAsync(category.Id, false) == null)
+                {
+                    var createdCategory = await categoryRepo.CreateAsync(new Category() { Name = category.Name });
+                    await _unitOfWork.SaveAsync();
+                    createdCategoryId = createdCategory.Id;
+                }
+
+                await productCategoryRepo.CreateAsync(
+                        new ProductCategory()
+                        {
+                            CategoryId = createdCategoryId > 0 ? createdCategoryId : category.Id,
+                            ProductId = productId
+                        });
+            }
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task<bool> DeleteProductAsync(int productId)
@@ -141,8 +146,9 @@ namespace PaymentDemo.Manage.Services.Implements
                 Task uploadImage = null;
                 if (newProduct.UploadedImage != null)
                 {
-                    uploadImage = FileHelpers.UploadFile(newProduct.UploadedImage, _webHostEnvironment.WebRootPath, FileConstants.ImageFolder, FileConstants.ProductFolder);
-                    newProduct.Image = FileHelpers.ResolveImage(newProduct.UploadedImage.FileName);
+                    var webRootAddress = string.IsNullOrWhiteSpace(_webHostEnvironment.WebRootPath) ? wwwRootAddress : _webHostEnvironment.WebRootPath;
+                    uploadImage = FileHelpers.UploadFile(newProduct.UploadedImage, webRootAddress, FileConstants.ImageFolder, FileConstants.ProductFolder);                    
+                    newProduct.Image = newProduct.UploadedImage.FileName;
                 }
                 var targetProduct = await _unitOfWork.ProductRepository.GetByIdAsync(newProduct.Id ?? 0, false);
                 if (targetProduct == null || targetProduct.Id == 0) return false;

@@ -14,6 +14,7 @@ namespace PaymentDemo.Manage.Models
         public IFormFile? UploadedImage { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public string? ProductCategoriesJson { get; set; }
         public List<CategoryViewModel>? ProductCategories { get; set; }        
     }
     public class ProductViewModelValidator : AbstractValidator<ProductViewModel>
