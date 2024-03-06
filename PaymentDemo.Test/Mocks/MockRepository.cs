@@ -1,6 +1,7 @@
 ﻿using Moq;
 using PaymentDemo.Manage;
 using PaymentDemo.Manage.Entities;
+using PaymentDemo.Manage.Enums;
 
 namespace PaymentDemo.Test.Mocks
 {
@@ -140,6 +141,44 @@ namespace PaymentDemo.Test.Mocks
             mock.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => users.FirstOrDefault(x => x.Id == id));
             mock.Setup(x => x.CreateAsync(It.IsAny<User>())).Callback(() => { return; });
             mock.Setup(x => x.Update(It.IsAny<User>())).Returns(true);
+            mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).Callback(() => { return; });
+
+            return mock;
+        }
+
+        public static Mock<IBaseRepository<Order>> GetMockOrder()
+        {
+            var mock = new Mock<IBaseRepository<Order>>();
+            var users = new List<Order>()
+            {
+               new Order(){
+                   Id = 1,
+                   CartId = 1,
+                   OrderNumber = "RAP001",
+                   ShippingAddress="05-N05 abc def ggg",
+                   PhoneNumber = "023434234",
+                   PaymentType = PaymentType.COD,
+                   ShipmentStatus = ShipmentStatus.Inprogress,
+                   PaymentStatus = PaymentStatus.Pending,
+                   OrderStatus = OrderStatus.Inprogress
+               },
+               new Order(){
+                   Id = 2,
+                   CartId = 2,
+                   OrderNumber = "RAP002",
+                   ShippingAddress="05-N05 abc def ggg",
+                   PhoneNumber = "023434234",
+                   PaymentType = PaymentType.COD,
+                   ShipmentStatus = ShipmentStatus.Inprogress,
+                   PaymentStatus = PaymentStatus.Pending,
+                   OrderStatus = OrderStatus.Inprogress
+               }
+            };
+
+            mock.Setup(x => x.GetAll(false)).Returns(() => users);
+            mock.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => users.FirstOrDefault(x => x.Id == id));
+            mock.Setup(x => x.CreateAsync(It.IsAny<Order>())).Callback(() => { return; });
+            mock.Setup(x => x.Update(It.IsAny<Order>())).Returns(true);
             mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).Callback(() => { return; });
 
             return mock;

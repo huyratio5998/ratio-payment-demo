@@ -17,6 +17,7 @@ namespace PaymentDemo.Test.Mocks
             mock.Setup(x => x.GetRepository<Cart>()).Returns(() => MockRepository.GetMockCart().Object);
             mock.Setup(x => x.GetRepository<ProductCart>()).Returns(() => MockRepository.GetMockProductCart().Object);
             mock.Setup(x => x.GetRepository<User>()).Returns(() => MockRepository.GetMockUser().Object);
+            mock.Setup(x => x.GetRepository<Order>()).Returns(() => MockRepository.GetMockOrder().Object);
             mock.Setup(x => x.SaveAsync()).Callback(() => { return; });
 
             return mock;

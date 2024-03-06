@@ -1,0 +1,94 @@
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
+using PaymentDemo.Manage;
+using PaymentDemo.Manage.Models;
+using PaymentDemo.Manage.Services.Abstractions;
+using System.Text.Json;
+
+namespace PaymentDemo.Api.Controllers.V1
+{
+    [ApiController]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]/[action]")]
+    public class CartController : ControllerBase
+    {
+        private readonly ICartService _cartService;
+
+        public CartController(ICartService cartService)
+        {
+            _cartService = cartService;
+        }
+
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[HttpGet("{id}")]
+        //public async Task<IActionResult> Get(int id)
+        //{
+        //    var result = await _cartService.GetCartAsync(id, false);
+        //    if (result == null || result.Id == null || result.Id == 0) return NotFound();
+
+        //    return Ok(result);
+        //}
+
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[HttpGet]
+        //public async Task<IActionResult> Gets([FromQuery] string? q, [FromQuery] int page, [FromQuery] int pageSize)
+        //{
+        //    ProductQueryParams queryParams = new ProductQueryParams()
+        //    {
+        //        SearchText = q?.Trim(),
+        //        PageNumber = page == 0 ? CommonConstant.PageIndexDefault : page,
+        //        PageSize = pageSize == 0 ? CommonConstant.PageSizeDefault : pageSize
+        //    };
+
+        //    var result = await _productService.GetProductsAsync(queryParams);
+        //    if (result == null || result.Items == null || result.Items.Count() == 0) return NotFound();
+
+        //    return Ok(result);
+        //}        
+
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[HttpPost]
+        //public async Task<IActionResult> Create([FromForm] ProductViewModel request)
+        //{
+        //    if (!string.IsNullOrWhiteSpace(request.ProductCategoriesJson)) 
+        //        request.ProductCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(request.ProductCategoriesJson);
+
+        //    var result = await _productService.CreateProductAsync(request);
+        //    if (result == 0) return BadRequest();
+
+        //    return CreatedAtAction(nameof(Get), new { id = result }, result);
+        //}
+
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[HttpPut]
+        //public async Task<IActionResult> Update([FromForm] ProductViewModel request)
+        //{
+        //    if (!string.IsNullOrWhiteSpace(request.ProductCategoriesJson))
+        //        request.ProductCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(request.ProductCategoriesJson);
+
+        //    var result = await _productService.UpdateProductAsync(request);
+        //    if (!result) return BadRequest();
+
+        //    return Ok(result);
+        //}
+
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]        
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> Delete([FromBody] int id)
+        //{
+        //    if(id <=0) return BadRequest();
+
+        //    var result = await _productService.DeleteProductAsync(id);
+        //    if (!result) return Ok("Delete Failure!");
+
+        //    return Ok(result);
+        //}
+    }
+}

@@ -25,6 +25,7 @@ namespace PaymentDemo.Manage.DependencyInjection
         public static IServiceCollection AddApplicationServicesConfig(this IServiceCollection services)
         {
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IUserInfoService, UserInfoService>();
 
             return services;
         }

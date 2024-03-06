@@ -27,7 +27,7 @@ namespace PaymentDemo.Manage.Repositories.Implements
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await GetByIdAsync(id);
+            var entity = await GetByIdAsync(id);            
             return await DeleteAsync(entity);
         }
 
@@ -47,45 +47,7 @@ namespace PaymentDemo.Manage.Repositories.Implements
             _dbSet.RemoveRange(entities);
 
             return true;
-        }
-
-        public IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression) =>
-            _dbSet.Where(expression).AsNoTracking();
-
-
-        public IEnumerable<T> Get(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
-        {
-            return Get(filter, orderBy, new IncludeDefinition<T>[0]);
-        }
-
-        public IEnumerable<T> Get(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, params IncludeDefinition<T>[] includes)
-        {
-            IQueryable<T> query = _dbSet;
-
-            foreach (var item in includes)
-            {
-                query = item.Include(query);
-            }
-
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
-
-            if (orderBy != null)
-            {
-                return orderBy(query).ToList();
-            }
-            else
-            {
-                return query.ToList();
-            }
-        }
-
-        public IQueryRepository<T> Include<TProperty>(Expression<Func<T, TProperty>> referenceExpression)
-        {
-            return new GenericQueryRepositoryHelper<T>(this, new IncludeDefinition<T, TProperty>(referenceExpression));
-        }        
+        }                      
 
         public IEnumerable<T> GetAll(bool isTracking = false)
         {

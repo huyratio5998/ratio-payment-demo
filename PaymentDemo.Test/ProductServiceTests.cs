@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Moq;
 using PaymentDemo.Manage;
 using PaymentDemo.Manage.Configurations.Mapper;
-using PaymentDemo.Manage.Entities;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Services.Implements;
 using PaymentDemo.Test.Mocks;
@@ -113,7 +112,7 @@ namespace PaymentDemo.Test
             var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
-            ProductViewModel product = await productService.GetProductAsync(productId);
+            ProductViewModel product = await productService.GetProductAsync(productId, false);
 
             //Assert
             product.Should().BeOfType<ProductViewModel>();
@@ -132,7 +131,7 @@ namespace PaymentDemo.Test
             var productService = new ProductService(unitOfWork.Object, _mapper, _productValidator, webHostEnvironment.Object);
 
             //Act
-            ProductViewModel product = await productService.GetProductAsync(productId);
+            ProductViewModel product = await productService.GetProductAsync(productId, false);
 
             //Assert
             product.Should().BeOfType<ProductViewModel>();

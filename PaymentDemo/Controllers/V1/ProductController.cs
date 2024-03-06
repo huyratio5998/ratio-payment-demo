@@ -1,5 +1,5 @@
 ﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentDemo.Manage;
 using PaymentDemo.Manage.Models;
@@ -9,6 +9,7 @@ using System.Text.Json;
 namespace PaymentDemo.Api.Controllers.V1
 {
     [ApiController]
+    [Authorize]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]/[action]")]
     public class ProductController : ControllerBase
@@ -67,9 +68,12 @@ namespace PaymentDemo.Api.Controllers.V1
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpPost]
+        [HttpPut]
         public async Task<IActionResult> Update([FromForm] ProductViewModel request)
         {
+            if (!string.IsNullOrWhiteSpace(request.ProductCategoriesJson))
+                request.ProductCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(request.ProductCategoriesJson);
+
             var result = await _productService.UpdateProductAsync(request);
             if (!result) return BadRequest();
 

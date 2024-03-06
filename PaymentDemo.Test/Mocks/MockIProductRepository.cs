@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.EntityFrameworkCore;
+using Moq;
 using PaymentDemo.Manage.Entities;
 using PaymentDemo.Manage.Repositories.Abstracts;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -86,11 +87,12 @@ namespace PaymentDemo.Test.Mocks
                 }
             };
 
-            mock.Setup(x => x.GetAll(false)).Returns(() => products);
+            mock.Setup(x => x.GetAll(false)).Returns(() => products);            
+            mock.Setup(x => x.GetByIdIncludeAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => products.FirstOrDefault(x => x.Id == id));
             mock.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => products.FirstOrDefault(x=>x.Id == id));
             mock.Setup(x => x.CreateAsync(It.IsAny<Product>())).ReturnsAsync(newProduct);
             mock.Setup(x => x.Update(It.IsAny<Product>())).Returns(true);
-            mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).Callback(() => { return; });
+            mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).ReturnsAsync((int id) => products.Remove(products.FirstOrDefault(x => x.Id == id)));
 
             return mock;
         }

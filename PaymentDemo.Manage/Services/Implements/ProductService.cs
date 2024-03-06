@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using PaymentDemo.Manage.Constants;
 using PaymentDemo.Manage.Entities;
 using PaymentDemo.Manage.Helpers;
@@ -89,11 +90,10 @@ namespace PaymentDemo.Manage.Services.Implements
         }
 
         public async Task<bool> DeleteProductAsync(int productId)
-        {
-            var product = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
-            if (product == null || product.Id == 0) return false;
+        {           
+            var result = await _unitOfWork.ProductRepository.DeleteAsync(productId);
+            if(!result) return false;
 
-            await _unitOfWork.ProductRepository.DeleteAsync(productId);
             await _unitOfWork.SaveAsync();
 
             return true;
@@ -101,8 +101,9 @@ namespace PaymentDemo.Manage.Services.Implements
 
         public async Task<ProductViewModel> GetProductAsync(int productId, bool isTracking = true)
         {
-            if (productId == 0) return new ProductViewModel();
-            var product = await _unitOfWork.ProductRepository.GetByIdAsync(productId, isTracking);
+            if (productId <= 0) return new ProductViewModel();
+
+            var product = await _unitOfWork.ProductRepository.GetByIdIncludeAsync(productId);
             if (product == null || product.Id == 0) return new ProductViewModel();
 
             return _mapper.Map<ProductViewModel>(product);
@@ -110,11 +111,13 @@ namespace PaymentDemo.Manage.Services.Implements
 
         public async Task<PagedResponse<ProductViewModel>> GetProductsAsync(ProductQueryParams queryParams)
         {
-            var items = _unitOfWork.ProductRepository.GetAll()
-                            .AsQueryable();
+            IQueryable<Product> items = _unitOfWork.ProductRepository
+                            .GetAll().AsQueryable()
+                            .Include(x => x.ProductCategories)
+                            .ThenInclude(x => x.Category);
 
             // filter
-            if (!string.IsNullOrWhiteSpace(queryParams.SearchText)) items = items.Where(x => x.Name.Contains(queryParams.SearchText) || x.DisplayName.Contains(queryParams.SearchText));
+            if (!string.IsNullOrWhiteSpace(queryParams.SearchText)) items =  items.Where(x => x.Name.Contains(queryParams.SearchText) || x.DisplayName.Contains(queryParams.SearchText));
 
             // order
             var orderCondition = queryParams.OrderBy;
@@ -150,7 +153,7 @@ namespace PaymentDemo.Manage.Services.Implements
                     uploadImage = FileHelpers.UploadFile(newProduct.UploadedImage, webRootAddress, FileConstants.ImageFolder, FileConstants.ProductFolder);                    
                     newProduct.Image = newProduct.UploadedImage.FileName;
                 }
-                var targetProduct = await _unitOfWork.ProductRepository.GetByIdAsync(newProduct.Id ?? 0, false);
+                var targetProduct = await _unitOfWork.ProductRepository.GetByIdIncludeAsync(newProduct.Id ?? 0, false);
                 if (targetProduct == null || targetProduct.Id == 0) return false;
 
                 var res = _unitOfWork.ProductRepository.Update(_mapper.Map<Product>(newProduct));
@@ -167,31 +170,9 @@ namespace PaymentDemo.Manage.Services.Implements
                 if (currentProductCategories != null && currentProductCategories.Any())
                     await productCategoryRepository.DeleteRangeAsync(currentProductCategories);
 
-                if (newProduct.ProductCategories != null && newProduct.ProductCategories.Any())
-                {
-                    var categoryRepo = _unitOfWork.GetRepository<Category>();
-                    foreach (CategoryViewModel category in newProduct.ProductCategories)
-                    {
-                        if (category == null || category.Id <= 0) continue;
-                        var createdCategoryId = 0;
-                        if (await categoryRepo.GetByIdAsync(category.Id, false) == null)
-                        {
-                            var createdCategory = await categoryRepo.CreateAsync(new Category() { Name = category.Name });
-                            await _unitOfWork.SaveAsync();
-                            createdCategoryId = createdCategory.Id;
-                        }
-
-                        // create product category
-                        await productCategoryRepository.CreateAsync(
-                                new ProductCategory()
-                                {
-                                    CategoryId = createdCategoryId > 0 ? createdCategoryId : category.Id,
-                                    ProductId = newProduct.Id ?? 0
-                                });
-                    }
-                }
-
-                await _unitOfWork.SaveAsync();
+                // create productCategory if any
+                await AddProductCategoryInfo((int)newProduct.Id, newProduct.ProductCategories);
+                
                 if (uploadImage != null) await uploadImage;
                 await _unitOfWork.CommitAsync();
                 return true;
