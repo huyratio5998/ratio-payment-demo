@@ -22,8 +22,4 @@
     <ProjectReference Include="..\PaymentDemo.Manage\PaymentDemo.Manage.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-
 </Project>

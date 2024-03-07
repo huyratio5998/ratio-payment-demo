@@ -26,6 +26,7 @@ namespace PaymentDemo.Manage.DependencyInjection
         {
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IUserInfoService, UserInfoService>();
+            services.AddSingleton<ICommonService, CommonService>();
 
             return services;
         }

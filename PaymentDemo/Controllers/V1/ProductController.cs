@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PaymentDemo.Api.Models;
 using PaymentDemo.Manage;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Services.Abstractions;
@@ -8,8 +9,8 @@ using System.Text.Json;
 
 namespace PaymentDemo.Api.Controllers.V1
 {
+    [Authorize(Roles =$"{DemoConstant.RatioAdmin},{DemoConstant.RatioReadOnly}")]
     [ApiController]
-    [Authorize]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]/[action]")]
     public class ProductController : ControllerBase
@@ -21,6 +22,7 @@ namespace PaymentDemo.Api.Controllers.V1
             _productService = productService;
         }
 
+        [Authorize(Roles = DemoConstant.RatioAdmin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id}")]
@@ -48,8 +50,9 @@ namespace PaymentDemo.Api.Controllers.V1
             if (result == null || result.Items == null || result.Items.Count() == 0) return NotFound();
 
             return Ok(result);
-        }        
+        }
 
+        [Authorize(Roles =DemoConstant.RatioAdmin)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -65,6 +68,7 @@ namespace PaymentDemo.Api.Controllers.V1
             return CreatedAtAction(nameof(Get), new { id = result }, result);
         }
 
+        [Authorize(Roles = DemoConstant.RatioAdmin)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -80,6 +84,7 @@ namespace PaymentDemo.Api.Controllers.V1
             return Ok(result);
         }
 
+        [Authorize(Roles = DemoConstant.RatioAdmin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]        
         [HttpDelete("{id}")]

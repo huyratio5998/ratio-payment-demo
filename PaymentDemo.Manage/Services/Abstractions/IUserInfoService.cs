@@ -5,5 +5,6 @@ namespace PaymentDemo.Manage.Services.Abstractions
     public interface IUserInfoService
     {
         Task<UserInfo?> GetUserAsync(string email, string password);
+        Task<UserInfo?> CreateUserInfo(UserInfo userInfo);
     }
 }

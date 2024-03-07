@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning.ApiExplorer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -12,6 +13,32 @@ namespace PaymentDemo.Api.SwaggerConfig
 
         public void Configure(SwaggerGenOptions options)
         {
+            // Authentication jwt UI
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+            {
+                In = ParameterLocation.Header,
+                Description = "Provide valid token",
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                BearerFormat = "JWT",
+                Scheme = "Bearer"
+            });
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+
             foreach (var description in _provider.ApiVersionDescriptions)
             {
                 options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
