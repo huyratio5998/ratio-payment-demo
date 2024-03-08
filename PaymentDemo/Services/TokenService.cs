@@ -64,6 +64,7 @@ namespace PaymentDemo.Api.Services
                 new Claim("UserName", user.UserName),
                 new Claim("Email", user.Email),                
             };
+                // Just for test purpose, need add role when create user account.
                 if (user.UserName.Equals(DemoConstant.AdminAccount)) claims.Add(new Claim(ClaimTypes.Role, DemoConstant.RatioAdmin));
                 else claims.Add(new Claim(ClaimTypes.Role, DemoConstant.RatioReadOnly));
 

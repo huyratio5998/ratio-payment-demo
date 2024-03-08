@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentDemo.Api.Services;
 using PaymentDemo.Manage.Entities;
+using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Services.Abstractions;
 
 namespace PaymentDemo.Api.Controllers.V1
@@ -23,11 +24,11 @@ namespace PaymentDemo.Api.Controllers.V1
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] UserInfo _userData)
+        public async Task<IActionResult> Post([FromBody] UserInfoViewModel _userData)
         {
-            if (_userData != null && _userData.Email != null && _userData.Password != null)
+            if (_userData != null && _userData.UserName != null && _userData.Password != null)
             {
-                var user = await _userInfoService.GetUserAsync(_userData.Email, _userData.Password);
+                var user = await _userInfoService.GetUserAsync(_userData.UserName, _userData.Password);
                 if (user == null) return BadRequest();
 
                 var token = _tokenService.CreateToken(user);
