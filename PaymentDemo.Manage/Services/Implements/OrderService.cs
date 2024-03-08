@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using PaymentDemo.Manage.Entities;
+using PaymentDemo.Manage.Enums;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Repositories.Abstracts;
 using PaymentDemo.Manage.Services.Abstractions;
@@ -10,17 +11,21 @@ namespace PaymentDemo.Manage.Services.Implements
 {
     public class OrderService : IOrderService
     {
+        private readonly ICartService _cartService;
+        private readonly IUserService _userService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IValidator<OrderViewModel> _validator;
         private readonly IBaseRepository<Order> _orderRepository;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<OrderViewModel> validator)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<OrderViewModel> validator, ICartService cartService, IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _validator = validator;
             _orderRepository = _unitOfWork.GetRepository<Order>();
+            _cartService = cartService;
+            _userService = userService;
         }
 
         public async Task<PagedResponse<OrderViewModel>> GetOrdersAsync(OrderQueryParams queryParams)
@@ -45,14 +50,36 @@ namespace PaymentDemo.Manage.Services.Implements
             var songs = await PagedResponse<Order>.CreateAsync(items, queryParams.PageNumber, queryParams.PageSize);
 
             var result = _mapper.Map<PagedResponse<OrderViewModel>>(songs);
+            await MapAdditionOrderViewModelInfo(result.Items);
+
             return result;
         }
 
-        public async Task<OrderViewModel?> GetOrderAsync(int orderId)
+        private async Task MapAdditionOrderViewModelInfo(List<OrderViewModel> listOrderViewModel)
+        {            
+            if (listOrderViewModel == null || !listOrderViewModel.Any()) return;            
+
+            foreach (var item in listOrderViewModel)
+            {
+                var cartId = item.Cart.Id;
+                if(cartId == 0) continue;
+
+                var cart = await _cartService.GetCartAsync(cartId);
+                if (cart == null) continue;
+                
+                var cartUser = await _userService.GetUserAsync(cart.UserId);
+                if (cartUser == null) continue;
+
+                item.Cart = cart;
+                item.User = cartUser;
+            }            
+        }
+
+        public async Task<OrderViewModel?> GetOrderAsync(int orderId, bool isTracking = true)
         {
             if (orderId <= 0) return null;
 
-            var order = await _orderRepository.GetByIdAsync(orderId);
+            var order = await _orderRepository.GetByIdAsync(orderId, isTracking);
             if (order == null) return null;
 
             return _mapper.Map<OrderViewModel>(order);
@@ -69,12 +96,17 @@ namespace PaymentDemo.Manage.Services.Implements
             return _mapper.Map<OrderViewModel>(order);
         }
 
-        public async Task<OrderViewModel> CreateOrderAsync(OrderViewModel newOrder)
+        public async Task<OrderViewModel?> CreateOrderAsync(OrderViewModel newOrder)
         {
             try
             {
                 var orderValidate = await _validator.ValidateAsync(newOrder);
-                if (!orderValidate.IsValid) return new OrderViewModel();
+                if (!orderValidate.IsValid) return null;
+                if (newOrder.Cart.Status == Enums.CartStatus.Deleted) return null;
+
+                newOrder.PaymentStatus = PaymentStatus.Pending;
+                newOrder.ShipmentStatus = ShipmentStatus.Inprogress;
+                newOrder.OrderStatus = OrderStatus.Created;                
 
                 var order = _mapper.Map<Order>(newOrder);
                 await _orderRepository.CreateAsync(order);
@@ -86,7 +118,7 @@ namespace PaymentDemo.Manage.Services.Implements
             }
             catch (Exception e)
             {
-                return new OrderViewModel();
+                return null;
             }
         }
 

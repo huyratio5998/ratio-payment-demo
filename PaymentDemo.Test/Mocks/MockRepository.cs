@@ -174,10 +174,15 @@ namespace PaymentDemo.Test.Mocks
                    OrderStatus = OrderStatus.Inprogress
                }
             };
-
+            
             mock.Setup(x => x.GetAll(false)).Returns(() => users);
             mock.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync((int id, bool isTracking) => users.FirstOrDefault(x => x.Id == id));
-            mock.Setup(x => x.CreateAsync(It.IsAny<Order>())).Callback(() => { return; });
+            mock.Setup(x => x.CreateAsync(It.IsAny<Order>()))
+                .ReturnsAsync((Order order) => 
+                {
+                    order.Id = 1;
+                    return order; 
+                });
             mock.Setup(x => x.Update(It.IsAny<Order>())).Returns(true);
             mock.Setup(x => x.DeleteAsync(It.IsAny<int>())).Callback(() => { return; });
 

@@ -1,12 +1,13 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaymentDemo.Manage;
+using PaymentDemo.Api.Models;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Services.Abstractions;
-using System.Text.Json;
 
 namespace PaymentDemo.Api.Controllers.V1
 {
+    [Authorize(Roles =DemoConstant.RatioAdmin)]
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]/[action]")]
@@ -19,76 +20,50 @@ namespace PaymentDemo.Api.Controllers.V1
             _cartService = cartService;
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //[HttpGet("{id}")]
-        //public async Task<IActionResult> Get(int id)
-        //{
-        //    var result = await _cartService.GetCartAsync(id, false);
-        //    if (result == null || result.Id == null || result.Id == 0) return NotFound();
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var result = await _cartService.GetCartAsync(id, false);
+            if (result == null || result.Id == null || result.Id == 0) return NotFound();
 
-        //    return Ok(result);
-        //}
+            return Ok(result);
+        }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //[HttpGet]
-        //public async Task<IActionResult> Gets([FromQuery] string? q, [FromQuery] int page, [FromQuery] int pageSize)
-        //{
-        //    ProductQueryParams queryParams = new ProductQueryParams()
-        //    {
-        //        SearchText = q?.Trim(),
-        //        PageNumber = page == 0 ? CommonConstant.PageIndexDefault : page,
-        //        PageSize = pageSize == 0 ? CommonConstant.PageSizeDefault : pageSize
-        //    };
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> AddToCart([FromBody] CartViewModel request)
+        {
+            var result = await _cartService.AddToCartAsync(request);
+            if (!result) return BadRequest();
 
-        //    var result = await _productService.GetProductsAsync(queryParams);
-        //    if (result == null || result.Items == null || result.Items.Count() == 0) return NotFound();
+            return Ok(result);
+        }
 
-        //    return Ok(result);
-        //}        
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ChangeCartItem([FromBody] AddToCartViewModel request)
+        {
+            var result = await _cartService.ChangeCartItemAsync(request);
+            if (!result) return BadRequest();
 
-        //[ProducesResponseType(StatusCodes.Status201Created)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[HttpPost]
-        //public async Task<IActionResult> Create([FromForm] ProductViewModel request)
-        //{
-        //    if (!string.IsNullOrWhiteSpace(request.ProductCategoriesJson)) 
-        //        request.ProductCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(request.ProductCategoriesJson);
+            return Ok(result);
+        }
 
-        //    var result = await _productService.CreateProductAsync(request);
-        //    if (result == 0) return BadRequest();
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpDelete]
+        public async Task<IActionResult> DeleteCart([FromQuery] int? userId, [FromQuery] int? cartId)
+        {
+            var result = await _cartService.DeleteCartAsync(userId, cartId);
+            if (!result) return BadRequest();
 
-        //    return CreatedAtAction(nameof(Get), new { id = result }, result);
-        //}
-
-        //[ProducesResponseType(StatusCodes.Status201Created)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[HttpPut]
-        //public async Task<IActionResult> Update([FromForm] ProductViewModel request)
-        //{
-        //    if (!string.IsNullOrWhiteSpace(request.ProductCategoriesJson))
-        //        request.ProductCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(request.ProductCategoriesJson);
-
-        //    var result = await _productService.UpdateProductAsync(request);
-        //    if (!result) return BadRequest();
-
-        //    return Ok(result);
-        //}
-
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]        
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> Delete([FromBody] int id)
-        //{
-        //    if(id <=0) return BadRequest();
-
-        //    var result = await _productService.DeleteProductAsync(id);
-        //    if (!result) return Ok("Delete Failure!");
-
-        //    return Ok(result);
-        //}
+            return Ok(result);
+        }
     }
 }

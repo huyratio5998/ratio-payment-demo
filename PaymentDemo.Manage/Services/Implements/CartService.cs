@@ -110,8 +110,7 @@ namespace PaymentDemo.Manage.Services.Implements
 
                     return true;
                 }
-
-                if (userId != null)
+                else  if (userId != null)
                 {
                     var cart = cartRepository.GetAll().AsQueryable().FirstOrDefault(x => x.UserId == userId && x.Status == Enums.CartStatus.Created);
                     if (cart == null) return false;

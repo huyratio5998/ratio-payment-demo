@@ -24,7 +24,11 @@ namespace PaymentDemo.Manage.Models
         public OrderViewModelValidator()
         {
             RuleFor(x => x.Cart).NotNull();
+            RuleFor(x => x.Cart.Id).GreaterThan(0);
+
             RuleFor(x=>x.User).NotNull();
+            RuleFor(x => x.User.Id).GreaterThan(0);
+
             RuleFor(x=>x.ShippingAddress).NotEmpty();
             RuleFor(x=>x.PhoneNumber).NotEmpty();
         }
