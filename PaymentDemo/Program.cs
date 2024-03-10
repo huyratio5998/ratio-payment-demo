@@ -5,10 +5,18 @@ using Microsoft.IdentityModel.Tokens;
 using PaymentDemo.Api.Services;
 using PaymentDemo.Api.SwaggerConfig;
 using PaymentDemo.Manage.DependencyInjection;
+using Serilog;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+//Logger
+var seriLogConfig = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(seriLogConfig);
 
 // Add services to the container.
 builder.Services.AddPaymentDemoDBContext(builder.Configuration);
@@ -18,6 +26,7 @@ builder.Services.AddApplicationRepositoriesConfig();
 builder.Services.AddApplicationServicesConfig();
 
 builder.Services.AddControllers();
+
 
 //JWT
 builder.Services.AddScoped<ITokenService, TokenService>();

@@ -32,7 +32,7 @@ namespace PaymentDemo.Manage.Configurations.Mapper
             CreateMap<OrderViewModel, Order>()
                 .ForMember(x=>x.CartId, f=>f.MapFrom(t=>t.Cart.Id));
             CreateMap<Order, OrderViewModel>()
-                .ForMember(x => x.Cart.Id, f => f.MapFrom(t =>  new Cart(){ Id = t.CartId}));
+                .ForMember(x => x.Cart, f => f.MapFrom(t =>  new Cart(){ Id = t.CartId}));
 
             CreateMap<UserInfoViewModel, UserInfo>();
 

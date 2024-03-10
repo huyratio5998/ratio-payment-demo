@@ -16,10 +16,12 @@ namespace PaymentDemo.Api.Controllers.V1
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly ILogger<ProductController> _logger;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, ILogger<ProductController> logger)
         {
             _productService = productService;
+            _logger = logger;
         }
 
         [Authorize(Roles = DemoConstant.RatioAdmin)]
@@ -45,10 +47,12 @@ namespace PaymentDemo.Api.Controllers.V1
                 PageNumber = page == 0 ? CommonConstant.PageIndexDefault : page,
                 PageSize = pageSize == 0 ? CommonConstant.PageSizeDefault : pageSize
             };
-
+            _logger.LogInformation($"Start query: {JsonSerializer.Serialize(queryParams)}");
+            
             var result = await _productService.GetProductsAsync(queryParams);
             if (result == null || result.Items == null || result.Items.Count() == 0) return NotFound();
 
+            _logger.LogInformation("Finish request");
             return Ok(result);
         }
 
