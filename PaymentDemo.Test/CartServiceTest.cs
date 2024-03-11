@@ -146,15 +146,15 @@ namespace PaymentDemo.Test
         }
         
         [Theory]
-        [InlineData(-99)]
-        [InlineData(-1)]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public async Task UpdateCart_ChangeCartItem_Success(int number)
+        [InlineData(-99,100)]
+        [InlineData(-1, 100)]
+        [InlineData(0, 100)]
+        [InlineData(1, 100)]
+        [InlineData(2, 100)]
+        public async Task UpdateCart_ChangeCartItem_Success(int number, decimal price)
         {            
             //Arrange
-            var cartItem = new AddToCartViewModel(1,1,number);
+            var cartItem = new AddToCartViewModel(1,1,number, price);
             var unitOfWork = MockUnitOfWork.GetMock();
             var cartService = new CartService(unitOfWork.Object, _mapper, _cartValidator);
 

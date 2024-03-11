@@ -44,7 +44,7 @@ namespace PaymentDemo.Manage.Services.Implements
             var createdUser = await _unitOfWork.GetRepository<User>()
                 .CreateAsync(_mapper.Map<User>(user));
 
-            if (createdUser == null || createdUser.Id == 0) return 0;
+            if (createdUser == null) return 0;
 
             await _unitOfWork.SaveAsync();
 

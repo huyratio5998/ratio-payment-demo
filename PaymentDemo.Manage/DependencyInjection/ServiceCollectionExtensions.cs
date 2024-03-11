@@ -25,7 +25,10 @@ namespace PaymentDemo.Manage.DependencyInjection
         public static IServiceCollection AddApplicationServicesConfig(this IServiceCollection services)
         {
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<ICartService, CartService>();            
             services.AddScoped<IUserInfoService, UserInfoService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddSingleton<ICommonService, CommonService>();
 
             return services;

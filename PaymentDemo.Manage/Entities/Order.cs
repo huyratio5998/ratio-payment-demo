@@ -12,5 +12,6 @@ namespace PaymentDemo.Manage.Entities
         public ShipmentStatus ShipmentStatus { get; set; }
         public PaymentStatus PaymentStatus { get; set; }
         public OrderStatus OrderStatus { get; set; }
+        public string? OrderHistory { get; set; }
     }
 }
