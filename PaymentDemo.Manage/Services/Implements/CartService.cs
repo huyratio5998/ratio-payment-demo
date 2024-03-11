@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using PaymentDemo.Manage.Entities;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Repositories.Abstracts;
@@ -34,13 +33,17 @@ namespace PaymentDemo.Manage.Services.Implements
                 await _unitOfWork.CreateTransactionAsync();
                 var cartRepository = _unitOfWork.GetRepository<Cart>();
                 var productCartRepository = _unitOfWork.GetRepository<ProductCart>();
+                var productRepository = _unitOfWork.GetRepository<Product>();
 
                 //check cart exist
                 var cartId = cart.Id;
                 if (cartId == 0)
                 {
                     var newCart = _mapper.Map<Cart>(cart);
-                    cartId = (await cartRepository.CreateAsync(newCart)).Id;
+                    var createdCart = await cartRepository.CreateAsync(newCart);
+                    createdCart.Status = Enums.CartStatus.Created;
+                    await _unitOfWork.SaveAsync();
+                    cartId = createdCart.Id;
                 }
 
                 foreach (var item in cart.CartItems)
@@ -48,12 +51,17 @@ namespace PaymentDemo.Manage.Services.Implements
                     var existProduct = productCartRepository
                         .GetAll().AsQueryable()
                         .FirstOrDefault(x => x.ProductId == item.ProductId && x.CartId == cartId);
+                    var productPrice = (await productRepository.GetByIdAsync(item.ProductId))?.Price ?? 0;
+                    item.Price = productPrice;
 
                     // check item already in cart
                     if (existProduct != null)
                     {
-                        existProduct.Number += item.Number;
-                        var updateResult = productCartRepository.Update(_mapper.Map<ProductCart>(item));
+                        item.Number += existProduct.Number;
+                        var newProductCart = _mapper.Map<ProductCart>(item);
+                        newProductCart.CartId = cartId;
+
+                        var updateResult = productCartRepository.Update(newProductCart);
                         if (!updateResult)
                         {
                             await _unitOfWork.RollbackAsync();
@@ -62,7 +70,9 @@ namespace PaymentDemo.Manage.Services.Implements
                     }
                     else
                     {
-                        await productCartRepository.CreateAsync(_mapper.Map<ProductCart>(item));
+                        var newProductCart = _mapper.Map<ProductCart>(item);
+                        newProductCart.CartId = cartId;
+                        await productCartRepository.CreateAsync(newProductCart);
                     }
                 }
 
@@ -110,7 +120,7 @@ namespace PaymentDemo.Manage.Services.Implements
 
                     return true;
                 }
-                else  if (userId != null)
+                else if (userId != null)
                 {
                     var cart = cartRepository.GetAll().AsQueryable().FirstOrDefault(x => x.UserId == userId && x.Status == Enums.CartStatus.Created);
                     if (cart == null) return false;
@@ -128,7 +138,7 @@ namespace PaymentDemo.Manage.Services.Implements
             {
                 return false;
             }
-        }        
+        }
 
         public async Task<CartViewModel?> GetCartAsync(int cartId, bool isTracking = true)
         {

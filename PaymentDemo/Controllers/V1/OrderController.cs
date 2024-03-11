@@ -7,7 +7,7 @@ using PaymentDemo.Manage.Services.Abstractions;
 
 namespace PaymentDemo.Api.Controllers.V1
 {
-    [Authorize(Roles =DemoConstant.RatioAdmin)]
+    [Authorize(Roles = DemoConstant.RatioAdmin)]
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]/[action]")]
@@ -56,38 +56,34 @@ namespace PaymentDemo.Api.Controllers.V1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] OrderViewModel request)
-        {            
+        {
             var result = await _orderService.CreateOrderAsync(request);
             if (result == null || result.Id == 0) return BadRequest();
 
             return Ok(result);
         }
 
-        //[Authorize(Roles = DemoConstant.RatioAdmin)]
-        //[ProducesResponseType(StatusCodes.Status201Created)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[HttpPut]
-        //public async Task<IActionResult> Update([FromForm] OrderViewModel request)
-        //{
-        //    if (!string.IsNullOrWhiteSpace(request.ProductCategoriesJson))
-        //        request.ProductCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(request.ProductCategoriesJson);
-
-        //    var result = await _orderService.UpdateProductAsync(request);
-        //    if (!result) return BadRequest();
-
-        //    return Ok(result);
-        //}
-
         [Authorize(Roles = DemoConstant.RatioAdmin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpDelete]
         public async Task<IActionResult> Delete([FromQuery] string orderNumber)
-        {            
+        {
             var result = await _orderService.DeleteOrderAsync(orderNumber);
             if (!result) return Ok("Delete Failure!");
 
+            return Ok(result);
+        }
+
+        [Authorize(Roles = DemoConstant.RatioAdmin)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPost]
+        public async Task<IActionResult> ShipmentTrack([FromQuery] string orderNumber, [FromQuery] string orderStatus)
+        {
+            if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(orderStatus)) return BadRequest();            
+
+            var result = await _orderService.ShipmentTrack(orderNumber, orderStatus);
             return Ok(result);
         }
     }
