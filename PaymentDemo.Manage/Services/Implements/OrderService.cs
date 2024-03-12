@@ -19,7 +19,7 @@ namespace PaymentDemo.Manage.Services.Implements
         private readonly IMapper _mapper;
         private readonly IValidator<OrderViewModel> _validator;
         private readonly IBaseRepository<Order> _orderRepository;
-        private readonly ILogger _logger;
+        private readonly ILogger<OrderService> _logger;
 
         public OrderService(ILogger<OrderService> logger, IUnitOfWork unitOfWork, IMapper mapper, IValidator<OrderViewModel> validator, ICartService cartService, IUserService userService, IPaymentService paymentService)
         {

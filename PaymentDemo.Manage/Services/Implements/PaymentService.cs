@@ -10,7 +10,7 @@ namespace PaymentDemo.Manage.Services.Implements
         private readonly IPaymentProviderFactory _paymentProviderFactory;
         private readonly ILogger _logger;
 
-        public PaymentService(ILogger logger, IPaymentProviderFactory paymentProviderFactory)
+        public PaymentService(ILogger<PaymentService> logger, IPaymentProviderFactory paymentProviderFactory)
         {
             _logger = logger;
             _paymentProviderFactory = paymentProviderFactory;
