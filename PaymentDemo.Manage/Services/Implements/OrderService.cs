@@ -14,21 +14,23 @@ namespace PaymentDemo.Manage.Services.Implements
     {
         private readonly ICartService _cartService;
         private readonly IUserService _userService;
+        private readonly IPaymentService _paymentService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IValidator<OrderViewModel> _validator;
         private readonly IBaseRepository<Order> _orderRepository;
         private readonly ILogger _logger;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<OrderViewModel> validator, ICartService cartService, IUserService userService, ILogger<OrderService> logger)
+        public OrderService(ILogger<OrderService> logger, IUnitOfWork unitOfWork, IMapper mapper, IValidator<OrderViewModel> validator, ICartService cartService, IUserService userService, IPaymentService paymentService)
         {
+            _logger = logger;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _validator = validator;
             _orderRepository = _unitOfWork.GetRepository<Order>();
             _cartService = cartService;
             _userService = userService;
-            _logger = logger;
+            _paymentService = paymentService;
         }
 
         public async Task<PagedResponse<OrderViewModel>> GetOrdersAsync(OrderQueryParams queryParams)
@@ -114,7 +116,7 @@ namespace PaymentDemo.Manage.Services.Implements
                     .FirstOrDefaultAsync(x => x.OrderNumber.Equals(orderNumber));
 
                 if (order == null) return false;
-                if(!CanUpdateOrderStatus(order.OrderStatus)) return false;
+                if (!CanUpdateOrderStatus(order.OrderStatus)) return false;
 
                 order.OrderStatus = orderStatusEnum;
                 order.OrderHistory = JsonSerializer.Serialize(AddOrderHistory(order.OrderHistory, order, orderStatusEnum));
@@ -148,7 +150,7 @@ namespace PaymentDemo.Manage.Services.Implements
         private List<OrderHistoryViewModel> AddOrderHistory(string? orderHistory, Order order, OrderStatus newOrderStatus)
         {
             var result = new List<OrderHistoryViewModel>();
-            if (!string.IsNullOrEmpty(orderHistory)) 
+            if (!string.IsNullOrEmpty(orderHistory))
                 result = JsonSerializer.Deserialize<List<OrderHistoryViewModel>>(orderHistory) ?? new List<OrderHistoryViewModel>();
 
             result.Add(new OrderHistoryViewModel()
@@ -173,20 +175,46 @@ namespace PaymentDemo.Manage.Services.Implements
             return _mapper.Map<OrderViewModel>(order);
         }
 
-        public async Task<OrderViewModel?> CreateOrderAsync(OrderViewModel newOrder)
+        public async Task<OrderViewModel?> CreateOrderAsync(OrderViewModel newOrder, CancellationToken cancellationToken)
         {
             try
             {
+                _logger.LogInformation("Start create order");
                 var orderValidate = await _validator.ValidateAsync(newOrder);
                 if (!orderValidate.IsValid) return null;
-                if (newOrder.Cart.Status == Enums.CartStatus.Deleted) return null;
+                if (newOrder.Cart.Status == CartStatus.Deleted) return null;
 
-                newOrder.PaymentStatus = PaymentStatus.Pending;
-                newOrder.ShipmentStatus = ShipmentStatus.Inprogress;
-                newOrder.OrderStatus = OrderStatus.Created;                
+                _logger.LogInformation("Start proceed payment");
+                var paymentRequest = new PaymentRequestViewModel()
+                {
+                    Money = GetTotalOrderPrice(newOrder),
+                    PaymentType = newOrder.PaymentType,
+                    Provider = newOrder.PaymentProvider
+                };
+                var paymentProceedStatus = await _paymentService.ProceedPayment(paymentRequest, cancellationToken);
+                if (!paymentProceedStatus) return null;
 
+                NewOrderAdditionInfo(newOrder);
                 var order = _mapper.Map<Order>(newOrder);
-                var orderHistory = new List<OrderHistoryViewModel>() { new OrderHistoryViewModel()
+                order.OrderHistory = OrderHistoryInitRecord(order);
+
+                await _orderRepository.CreateAsync(order);
+                await _unitOfWork.SaveAsync();
+
+                newOrder.Id = order.Id;
+                _logger.LogInformation("Successfull create order");
+                return newOrder;
+            }
+            catch (Exception e)
+            {
+                _logger.LogInformation("Exception create order: " + e.ToString());
+                return null;
+            }
+        }
+
+        private string OrderHistoryInitRecord(Order order)
+        {
+            var orderHistory = new List<OrderHistoryViewModel>() { new OrderHistoryViewModel()
                 {
                     OrderId = order.Id,
                     OrderNumber = order.OrderNumber,
@@ -194,19 +222,21 @@ namespace PaymentDemo.Manage.Services.Implements
                     Description = $"Initial order: {order.OrderNumber}",
                     CreatedDate = DateTime.UtcNow,
                 }};
-                order.OrderHistory = JsonSerializer.Serialize(orderHistory);
+            return JsonSerializer.Serialize(orderHistory);
+        }
 
-                await _orderRepository.CreateAsync(order);
-                await _unitOfWork.SaveAsync();
+        private void NewOrderAdditionInfo(OrderViewModel newOrder)
+        {
+            newOrder.PaymentStatus = PaymentStatus.Pending;
+            newOrder.ShipmentStatus = ShipmentStatus.Inprogress;
+            newOrder.OrderStatus = OrderStatus.Created;
+        }
 
-                newOrder.Id = order.Id;
-                return newOrder;
+        private decimal GetTotalOrderPrice(OrderViewModel newOrder)
+        {
+            if (newOrder == null || newOrder.Cart == null || newOrder.Cart.CartItems == null || newOrder.Cart.CartItems.Count() == 0) return 0;
 
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
+            return newOrder.Cart.CartItems.Sum(x => x.Price * x.Number);
         }
 
         public async Task<bool> UpdateOrderAsync(OrderViewModel newOrder)

@@ -10,6 +10,7 @@ builder.Services.AddFluentValidationConfig();
 builder.Services.AddConfigurationAutoMapper();
 builder.Services.AddApplicationRepositoriesConfig();
 builder.Services.AddApplicationServicesConfig();
+builder.Services.AddHttpClientFactoryConfig();
 
 var app = builder.Build();
 

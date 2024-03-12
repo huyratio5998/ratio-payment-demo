@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentDemo.Manage.Configurations.Mapper;
 using PaymentDemo.Manage.Data;
+using PaymentDemo.Manage.Enums;
 using PaymentDemo.Manage.Models;
 using PaymentDemo.Manage.Repositories.Abstracts;
 using PaymentDemo.Manage.Repositories.Implements;
@@ -30,6 +31,8 @@ namespace PaymentDemo.Manage.DependencyInjection
             services.AddScoped<IUserInfoService, UserInfoService>();
             services.AddScoped<IUserService, UserService>();
             services.AddSingleton<ICommonService, CommonService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IPaymentProviderFactory, PaymentProviderFactory>();
 
             return services;
         }
@@ -51,6 +54,21 @@ namespace PaymentDemo.Manage.DependencyInjection
 
             services.AddDbContext<PaymentDBContext>(opt => opt.UseSqlServer(connectionString,
                 builder => builder.MigrationsAssembly(typeof(PaymentDBContext).Assembly.FullName)));
+        }
+
+        public static IServiceCollection AddHttpClientFactoryConfig(this IServiceCollection services)
+        {
+            services.AddHttpClient(PaymentProvider.Paypal.ToString(), x =>
+            {
+                x.BaseAddress = new Uri("");
+            });
+
+            services.AddHttpClient(PaymentProvider.Adyen.ToString(), x =>
+            {
+                x.BaseAddress = new Uri("");
+            });
+
+            return services;
         }
     }
 }
