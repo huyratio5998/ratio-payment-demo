@@ -5,15 +5,17 @@ namespace PaymentDemo.Manage.Services.Implements
 {
     public class PaymentProviderFactory : IPaymentProviderFactory
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PaymentProviderFactory(IHttpClientFactory httpClientFactory, ILogger<PaymentProviderFactory> logger, IConfiguration configuration)
+        public PaymentProviderFactory(ILogger<PaymentProviderFactory> logger, IConfiguration configuration, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
-            _httpClientFactory = httpClientFactory;
             _logger = logger;
             _configuration = configuration;
+            _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public IPaymentProvider? CreatePaymentProvider(PaymentProvider? paymentProvider)
@@ -23,7 +25,7 @@ namespace PaymentDemo.Manage.Services.Implements
                 case PaymentProvider.Adyen: 
                     return new AdyenProviderService(_httpClientFactory, _logger);
                 case PaymentProvider.Paypal: 
-                    return new PaypalProviderService(_logger, _configuration);
+                    return new PaypalProviderService(_logger, _configuration, _httpContextAccessor);
                 default: return null;
             }
         }

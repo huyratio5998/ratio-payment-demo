@@ -1,6 +1,5 @@
 ﻿using PaymentDemo.Manage.Enums;
 using PaymentDemo.Manage.Models;
-using PaymentDemo.Manage.Models.PaymentProviders;
 using PaymentDemo.Manage.Services.Abstractions;
 
 namespace PaymentDemo.Manage.Services.Implements
@@ -28,12 +27,12 @@ namespace PaymentDemo.Manage.Services.Implements
                 return false;
             }
 
-            await paymentProvider.SendRequest(new BasePaymentRequestViewModel(request.Money, PaymentRequestType.RequestPayment), cancellationToken);
-            _logger.LogInformation("Success to send payment request");
-            return true;
+            var result = await paymentProvider.SendRequest(paymentProvider.CreateRequestModel(request, PaymentRequestType.RequestPayment), cancellationToken);
+            _logger.LogInformation("End proceed payment online");
+            return result;
         }
 
-        public async Task<bool> ProceedRefund(PaymentRefundRequestViewModel request, CancellationToken cancellationToken)
+        public async Task<bool> ProceedRefund(PaymentRequestViewModel request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Start proceed refund payment");
             var paymentProvider = _paymentProviderFactory.CreatePaymentProvider(request.Provider);
@@ -43,9 +42,9 @@ namespace PaymentDemo.Manage.Services.Implements
                 return false;
             }
 
-            await paymentProvider.SendRequest(new BasePaymentRequestViewModel(request.Money, PaymentRequestType.Refund), cancellationToken);
-            _logger.LogInformation("Success to send refund payment request");
-            return true;
+            var result = await paymentProvider.SendRequest(paymentProvider.CreateRequestModel(request, PaymentRequestType.Refund), cancellationToken);
+            _logger.LogInformation("End proceed refund online");
+            return result;           
         }
     }
 }

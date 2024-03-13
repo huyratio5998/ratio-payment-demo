@@ -2,11 +2,11 @@
 
 namespace PaymentDemo.Manage.Models.PaymentProviders
 {
-    public class BasePaymentRequestViewModel
+    public class BasePaymentRequestViewModel : IPaymentRequestViewModel
     {
         public BasePaymentRequestViewModel()
         {
-            
+
         }
         public BasePaymentRequestViewModel(decimal totalMoney, PaymentRequestType paymentRequestType)
         {

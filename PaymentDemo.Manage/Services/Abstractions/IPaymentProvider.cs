@@ -1,10 +1,12 @@
-﻿using PaymentDemo.Manage.Models.PaymentProviders;
-using PaymentDemo.Manage.Models.PaymentProviders.Paypal;
+﻿using PaymentDemo.Manage.Enums;
+using PaymentDemo.Manage.Models;
+using PaymentDemo.Manage.Models.PaymentProviders;
 
 namespace PaymentDemo.Manage.Services.Abstractions
 {
     public interface IPaymentProvider
     {
-        Task SendRequest(BasePaymentRequestViewModel paymentRequest, CancellationToken cancelToken);
+        Task<bool> SendRequest(IPaymentRequestViewModel paymentRequest, CancellationToken cancelToken);
+        IPaymentRequestViewModel CreateRequestModel(PaymentRequestViewModel request, PaymentRequestType paymentType);
     }
 }

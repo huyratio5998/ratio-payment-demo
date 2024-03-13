@@ -4,6 +4,6 @@ namespace PaymentDemo.Manage.Services.Abstractions
 {
     public interface IPaymentProviderFactory
     {
-        IPaymentProvider? CreatePaymentProvider(PaymentProvider? paymentProvider);
+        IPaymentProvider? CreatePaymentProvider(PaymentProvider? paymentProvider);        
     }
 }

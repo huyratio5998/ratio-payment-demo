@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using PaymentDemo.Manage.Configurations.Mapper;
 using PaymentDemo.Manage.Data;
 using PaymentDemo.Manage.Enums;
@@ -25,14 +26,16 @@ namespace PaymentDemo.Manage.DependencyInjection
 
         public static IServiceCollection AddApplicationServicesConfig(this IServiceCollection services)
         {
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<ICommonService, CommonService>();
+
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ICartService, CartService>();            
             services.AddScoped<IUserInfoService, UserInfoService>();
             services.AddScoped<IUserService, UserService>();
-            services.AddSingleton<ICommonService, CommonService>();
-            services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IPaymentProviderFactory, PaymentProviderFactory>();
+            services.AddScoped<IPaymentService, PaymentService>();
 
             return services;
         }
@@ -58,15 +61,16 @@ namespace PaymentDemo.Manage.DependencyInjection
 
         public static IServiceCollection AddHttpClientFactoryConfig(this IServiceCollection services)
         {
-            services.AddHttpClient(PaymentProvider.Paypal.ToString(), x =>
-            {
-                x.BaseAddress = new Uri("");
-            });
+            services.AddHttpClient();
+            //services.AddHttpClient(PaymentProvider.Paypal.ToString(), x =>
+            //{
+            //    x.BaseAddress = new Uri("");
+            //});
 
-            services.AddHttpClient(PaymentProvider.Adyen.ToString(), x =>
-            {
-                x.BaseAddress = new Uri("");
-            });
+            //services.AddHttpClient(PaymentProvider.Adyen.ToString(), x =>
+            //{
+            //    x.BaseAddress = new Uri("");
+            //});
 
             return services;
         }
