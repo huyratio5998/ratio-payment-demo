@@ -128,8 +128,8 @@ namespace PaymentDemo.Manage.Services.Implements
             }
 
             // paging
-            queryParams.PageNumber = queryParams.PageNumber <= 0 ? CommonConstant.PageIndexDefault : queryParams.PageNumber;
-            queryParams.PageSize = queryParams.PageSize <= 0 ? CommonConstant.PageSizeDefault : queryParams.PageSize;
+            queryParams.PageNumber = queryParams.PageNumber <= 0 ? Models.CommonConstant.PageIndexDefault : queryParams.PageNumber;
+            queryParams.PageSize = queryParams.PageSize <= 0 ? Models.CommonConstant.PageSizeDefault : queryParams.PageSize;
 
             var songs = await PagedResponse<Product>.CreateAsync(items, queryParams.PageNumber, queryParams.PageSize);
 

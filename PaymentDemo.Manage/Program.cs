@@ -10,6 +10,7 @@ builder.Services.AddFluentValidationConfig();
 builder.Services.AddConfigurationAutoMapper();
 builder.Services.AddApplicationRepositoriesConfig();
 builder.Services.AddApplicationServicesConfig();
+builder.Services.AddHttpClientFactoryConfig();
 
 var app = builder.Build();
 
@@ -23,10 +24,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",

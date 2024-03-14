@@ -24,9 +24,16 @@ builder.Services.AddFluentValidationConfig();
 builder.Services.AddConfigurationAutoMapper();
 builder.Services.AddApplicationRepositoriesConfig();
 builder.Services.AddApplicationServicesConfig();
+builder.Services.AddHttpClientFactoryConfig();
 
 builder.Services.AddControllers();
 
+//distributed cache
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["RedisURL"];
+});
 
 //JWT
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -53,6 +60,10 @@ builder.Services.AddAuthentication(x =>
     };
 });
 builder.Services.AddAuthorization();
+
+//Session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
 //Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -95,8 +106,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession();
 app.MapControllers();
 
 app.Run();

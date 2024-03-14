@@ -57,7 +57,10 @@ namespace PaymentDemo.Api.Controllers.V1
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] OrderViewModel request)
         {
-            var result = await _orderService.CreateOrderAsync(request);
+            var timeoutCts = new CancellationTokenSource();
+            timeoutCts.CancelAfter(TimeSpan.FromMinutes(Manage.Constants.CommonConstant.MaxOrderTimeExecuteMinutes));
+
+            var result = await _orderService.CreateOrderAsync(request, timeoutCts.Token);
             if (result == null || result.Id == 0) return BadRequest();
 
             return Ok(result);
@@ -79,11 +82,11 @@ namespace PaymentDemo.Api.Controllers.V1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> ShipmentTrack([FromQuery] string orderNumber, [FromQuery] string orderStatus)
+        public async Task<IActionResult> ShipmentTrack([FromQuery] string orderNumber, [FromQuery] string shipmentStatus)
         {
-            if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(orderStatus)) return BadRequest();            
+            if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(shipmentStatus)) return BadRequest();
 
-            var result = await _orderService.ShipmentTrack(orderNumber, orderStatus);
+            var result = await _orderService.ShipmentTrack(orderNumber, shipmentStatus);
             return Ok(result);
         }
     }
