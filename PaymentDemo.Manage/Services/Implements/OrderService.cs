@@ -103,23 +103,24 @@ namespace PaymentDemo.Manage.Services.Implements
             return _mapper.Map<OrderViewModel>(order);
         }
 
-        public async Task<bool> ShipmentTrack(string orderNumber, string orderStatus)
+        public async Task<bool> ShipmentTrack(string orderNumber, string shipmentStatus)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(orderStatus)) return false;
-                if (!Enum.TryParse(orderStatus, out OrderStatus orderStatusEnum)) return false;
+                if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(shipmentStatus)) return false;
+                if (!Enum.TryParse(shipmentStatus, out ShipmentStatus shipmentStatusEnum)) return false;
 
                 await _unitOfWork.CreateTransactionAsync();
                 var order = await _orderRepository
                     .GetAll(true).AsQueryable()
                     .FirstOrDefaultAsync(x => x.OrderNumber.Equals(orderNumber));
 
-                if (order == null) return false;
+                if (order == null) return false;                
                 if (!CanUpdateOrderStatus(order.OrderStatus)) return false;
 
-                order.OrderStatus = orderStatusEnum;
-                order.OrderHistory = JsonSerializer.Serialize(AddOrderHistory(order.OrderHistory, order, orderStatusEnum));
+                var newOrderStatus = UpdateOrderStatusByShipment(shipmentStatusEnum);
+                order.OrderStatus = newOrderStatus;
+                order.OrderHistory = JsonSerializer.Serialize(AddOrderHistory(order.OrderHistory, order, newOrderStatus));
 
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitAsync();
@@ -132,7 +133,78 @@ namespace PaymentDemo.Manage.Services.Implements
                 return false;
             }
         }
+        public async Task<bool> UpdateOrderStatusByPaymentStatus(string orderNumber, string paymentStatus)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(paymentStatus)) return false;
+                if (!Enum.TryParse(paymentStatus, out PaymentStatus paymentStatusEnum)) return false;
 
+                await _unitOfWork.CreateTransactionAsync();
+                var order = await _orderRepository
+                    .GetAll(true).AsQueryable()
+                    .FirstOrDefaultAsync(x => x.OrderNumber.Equals(orderNumber));
+
+                if (order == null) return false;
+                if (!CanUpdateOrderStatus(order.OrderStatus)) return false;
+
+                var newOrderStatus = UpdateOrderStatusByPayment(paymentStatusEnum);
+                order.OrderStatus = newOrderStatus;
+                order.ModifiedDate = DateTime.UtcNow;
+                order.OrderHistory = JsonSerializer.Serialize(
+                    AddOrderHistory(order.OrderHistory,
+                    order, 
+                    newOrderStatus, 
+                    $"Payment trigger update order status to: {newOrderStatus.ToString()}"
+                    ));
+
+                await _unitOfWork.SaveAsync();
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Fail to update order status by payment. Exception: " + ex.ToString());
+                await _unitOfWork.RollbackAsync();
+                return false;
+            }
+        }
+
+        private OrderStatus UpdateOrderStatusByShipment(ShipmentStatus shipmentStatus)
+        {
+            var result = OrderStatus.Created;
+            switch (shipmentStatus)
+            {
+                case ShipmentStatus.Success:
+                    result = OrderStatus.Successfully;
+                    break;
+                case ShipmentStatus.Failure:
+                    result = OrderStatus.Canceled;
+                    break;
+                case ShipmentStatus.Retry:
+                case ShipmentStatus.Inprogress:
+                    result = OrderStatus.Inprogress;
+                    break;
+            }
+            return result;
+        }
+        private OrderStatus UpdateOrderStatusByPayment(PaymentStatus paymentStatus)
+        {
+            var result = OrderStatus.Created;
+            switch (paymentStatus)
+            {
+                case PaymentStatus.Success:
+                    result = OrderStatus.Paid;
+                    break;
+                case PaymentStatus.Failure:
+                    result = OrderStatus.PaymentFail;
+                    break;
+                case PaymentStatus.Pending:               
+                    result = OrderStatus.Inprogress;
+                    break;
+            }
+            return result;
+        }
         private bool CanUpdateOrderStatus(OrderStatus previousStatus)
         {
             switch (previousStatus)
@@ -147,7 +219,7 @@ namespace PaymentDemo.Manage.Services.Implements
             }
         }
 
-        private List<OrderHistoryViewModel> AddOrderHistory(string? orderHistory, Order order, OrderStatus newOrderStatus)
+        private List<OrderHistoryViewModel> AddOrderHistory(string? orderHistory, Order order, OrderStatus newOrderStatus, string message = "")
         {
             var result = new List<OrderHistoryViewModel>();
             if (!string.IsNullOrEmpty(orderHistory))
@@ -158,7 +230,7 @@ namespace PaymentDemo.Manage.Services.Implements
                 OrderId = order.Id,
                 OrderNumber = order.OrderNumber,
                 OrderStatus = newOrderStatus,
-                Description = $"Shipment tracking change order status to: {newOrderStatus.ToString()}",
+                Description = !string.IsNullOrEmpty(message) ? message : $"Shipment tracking change order status to: {newOrderStatus.ToString()}",
                 CreatedDate = DateTime.UtcNow,
             });
             return result;
@@ -187,6 +259,7 @@ namespace PaymentDemo.Manage.Services.Implements
                 _logger.LogInformation("Start proceed payment");
                 var paymentRequest = new PaymentRequestViewModel()
                 {
+                    OrderNumber = newOrder.OrderNumber,
                     Money = GetTotalOrderPrice(newOrder),
                     PaymentType = newOrder.PaymentType,
                     Provider = newOrder.PaymentProvider
@@ -227,7 +300,7 @@ namespace PaymentDemo.Manage.Services.Implements
 
         private void NewOrderAdditionInfo(OrderViewModel newOrder)
         {
-            newOrder.PaymentStatus = PaymentStatus.Pending;
+            newOrder.PaymentStatus = newOrder.PaymentType == PaymentType.COD ? PaymentStatus.Success : PaymentStatus.Pending;
             newOrder.ShipmentStatus = ShipmentStatus.Inprogress;
             newOrder.OrderStatus = OrderStatus.Created;
         }

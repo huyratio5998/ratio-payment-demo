@@ -11,6 +11,7 @@ namespace PaymentDemo.Manage.Services.Abstractions
         Task<bool> UpdateOrderAsync(OrderViewModel newOrder);
         Task<bool> DeleteOrderAsync(string orderNumber);
 
-        Task<bool> ShipmentTrack(string orderNumber, string orderStatus);
+        Task<bool> ShipmentTrack(string orderNumber, string shipmentStatus);
+        Task<bool> UpdateOrderStatusByPaymentStatus(string orderNumber, string paymentStatus);
     }
 }

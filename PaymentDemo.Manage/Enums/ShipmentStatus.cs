@@ -2,8 +2,9 @@
 {
     public enum ShipmentStatus
     {
-        Inprogress = 0,
+        Inprogress = 0,        
         Success = 1,
         Failure = 2,
+        Retry = 3,
     }
 }

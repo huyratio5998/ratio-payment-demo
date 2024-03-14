@@ -23,19 +23,23 @@ namespace PaymentDemo.Api.Controllers.V1
             _orderService = orderService;
         }
 
+        /// <summary>
+        /// Call back function for execute payment.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [HttpPost]
-        public async Task<IActionResult> ExecutePayment([FromBody] PaymentRequestViewModel request)
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> ExecutePayment([FromQuery] PaymentRequestViewModel request)
         {
             var timeoutCts = new CancellationTokenSource();
             timeoutCts.CancelAfter(TimeSpan.FromMinutes(Manage.Constants.CommonConstant.MaxOrderTimeExecuteMinutes));
 
             var result = await _paymentService.ProceedPayment(request, timeoutCts.Token);
             if(!string.IsNullOrEmpty(request.PayerID) && result)
-            {
-                // update order status
-            }
+                await _orderService.UpdateOrderStatusByPaymentStatus(request.OrderNumber, PaymentStatus.Success.ToString());
 
             return Ok(result);
         }

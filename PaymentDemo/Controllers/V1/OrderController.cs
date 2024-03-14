@@ -82,11 +82,11 @@ namespace PaymentDemo.Api.Controllers.V1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> ShipmentTrack([FromQuery] string orderNumber, [FromQuery] string orderStatus)
+        public async Task<IActionResult> ShipmentTrack([FromQuery] string orderNumber, [FromQuery] string shipmentStatus)
         {
-            if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(orderStatus)) return BadRequest();
+            if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(shipmentStatus)) return BadRequest();
 
-            var result = await _orderService.ShipmentTrack(orderNumber, orderStatus);
+            var result = await _orderService.ShipmentTrack(orderNumber, shipmentStatus);
             return Ok(result);
         }
     }

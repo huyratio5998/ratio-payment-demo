@@ -27,7 +27,7 @@ namespace PaymentDemo.Manage.Services.Implements
 
         public async Task<bool> SendRequest(IPaymentRequestViewModel basePaymentRequest, CancellationToken cancelToken)
         {
-            // test
+            // test because haven't implement refund yet.
             if (basePaymentRequest.PaymentRequestType == PaymentRequestType.Refund) return false;
 
             var request = basePaymentRequest as PaypalRequestViewModel;
@@ -43,7 +43,7 @@ namespace PaymentDemo.Manage.Services.Implements
                     var currentRequest = _httpContextAccessor.HttpContext?.Request;
                     string baseUrl = $"{currentRequest?.Scheme}://{currentRequest?.Host}{CallBackUrl}?";
 
-                    _payment = CreatePayment(request.TotalMoney, baseUrl);
+                    _payment = CreatePayment(request, baseUrl);
                     var createdPayment = await Task.Run(() => _payment.Create(payPalApiContext));
 
                     var links = createdPayment.links.GetEnumerator();
@@ -94,18 +94,18 @@ namespace PaymentDemo.Manage.Services.Implements
             return payPalContext;
         }
 
-        private Payment CreatePayment(decimal totalMoney, string baseUri)
+        private Payment CreatePayment(PaypalRequestViewModel request, string baseUri)
         {            
             var redirectUrl = new RedirectUrls
             {
                 cancel_url = $"{baseUri}",
-                return_url = $"{baseUri}"
+                return_url = $"{baseUri}&OrderNumber={request.OrderNumber}"
             };
 
             var amount = new Amount
             {
                 currency = "USD",
-                total = totalMoney.ToString()
+                total = request.TotalMoney.ToString()
             };
 
             var transaction = new List<Transaction>();
@@ -134,6 +134,7 @@ namespace PaymentDemo.Manage.Services.Implements
                 IsCreatePayment = isCreatePayment,
                 IsExecutePayment = !isCreatePayment,
                 PayerId = request.PayerID ?? string.Empty,
+                OrderNumber = request.OrderNumber,
                 TotalMoney = request.Money,
                 PaymentRequestType = paymentType
             };

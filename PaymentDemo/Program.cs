@@ -28,6 +28,13 @@ builder.Services.AddHttpClientFactoryConfig();
 
 builder.Services.AddControllers();
 
+//distributed cache
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["RedisURL"];
+});
+
 //JWT
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAuthentication(x =>

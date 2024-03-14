@@ -3,17 +3,8 @@
 namespace PaymentDemo.Manage.Models.PaymentProviders
 {
     public class BasePaymentRequestViewModel : IPaymentRequestViewModel
-    {
-        public BasePaymentRequestViewModel()
-        {
-
-        }
-        public BasePaymentRequestViewModel(decimal totalMoney, PaymentRequestType paymentRequestType)
-        {
-            TotalMoney = totalMoney;
-            PaymentRequestType = paymentRequestType;
-        }
-
+    {       
+        public string OrderNumber { get; set; }
         public decimal TotalMoney { get; set; }
         public PaymentRequestType PaymentRequestType { get; set; }
     }
